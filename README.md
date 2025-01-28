@@ -1,13 +1,59 @@
-# Memo Card Game
+# Memo Card Game 🎴
 
-A mobile memory card game built with React Native and Expo.
+A modern memory card game built with React Native and Expo. Challenge yourself in single-player mode to beat your best time, or compete with friends in multiplayer mode (up to 4 players).
 
-## Game Rules
+## ✨ Features
+
+- 🎮 Single and multiplayer modes (1-4 players)
+- 🎨 Multiple card themes:
+  - 🐼 Animals
+  - 🍕 Food
+  - 🎲 Random mix
+- ⏱️ Best time tracking for single player
+- 📝 Customizable player names
+- ⚙️ Persistent settings
+- 📱 Haptic feedback
+- 🎯 Smooth animations
+
+## 🎯 Game Rules
 - Players take turns flipping two cards at a time
 - If the cards match, the current player keeps them and gets another turn
 - If the cards don't match, they are flipped face down and the next player takes their turn
 - The game continues until all pairs are found
-- The player with the most pairs wins
+- In multiplayer: player with the most pairs wins
+- In single player: try to beat your best time!
+
+## 🚀 Getting Started
+
+1. Clone the repository:
+```bash
+git clone https://github.com/YOUR_USERNAME/memo-card-game.git
+cd memo-card-game
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npx expo start
+```
+
+## 🛠️ Tech Stack
+- React Native
+- Expo
+- React Native Reanimated (for animations)
+- Expo Haptics (for haptic feedback)
+- AsyncStorage (for data persistence)
+- Expo Vector Icons (for UI icons)
+
+## 📱 Screenshots
+[Add screenshots here]
+
+## 📄 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## TODO List
 
@@ -72,27 +118,4 @@ A mobile memory card game built with React Native and Expo.
 - [x] Add settings menu
 - [ ] Optimize performance
 - [ ] Add app icon and splash screen
-
-## Getting Started
-```bash
-npm install
-npx expo start
-```
-
-## Tech Stack
-- React Native
-- Expo
-- React Native Reanimated (for animations)
-- Expo Haptics (for haptic feedback)
-- AsyncStorage (for data persistence)
-- Expo Vector Icons (for UI icons)
-
-## Features
-- Single and multiplayer modes (1-4 players)
-- Multiple card themes (Animals, Food, Random mix)
-- Best time tracking for single player
-- Player name customization
-- Settings persistence
-- Haptic feedback
-- Smooth animations
 
