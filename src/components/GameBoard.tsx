@@ -16,8 +16,11 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Settings, GameSettings } from './Settings';
 
-const EMOJIS = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'];
-const CARD_PAIRS = [...EMOJIS, ...EMOJIS];
+const EMOJI_SETS = {
+  Animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'],
+  Food: ['🍕', '🍔', '🌭', '🍟', '🌮', '🍜', '🍙', '🍎', '🍫', '🍦'],
+  Random: [] as string[], // Will be filled with random mix of both sets
+};
 
 interface CardType {
   id: number;
@@ -41,17 +44,32 @@ const INITIAL_PLAYERS: Player[] = [
   { id: 1, name: 'Player 1', score: 0 },
 ];
 
-const INITIAL_CARDS = CARD_PAIRS
-  .sort(() => Math.random() - 0.5)
-  .map((emoji, index) => ({
-    id: index,
-    isFlipped: false,
-    isMatched: false,
-    emoji,
-  }));
+const getThemeEmojis = (theme: string): string[] => {
+  if (theme === 'Random') {
+    // Combine both sets and shuffle
+    const allEmojis = [...EMOJI_SETS.Animals, ...EMOJI_SETS.Food];
+    const shuffled = allEmojis.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 10); // Take first 10 emojis
+  }
+  return EMOJI_SETS[theme as keyof typeof EMOJI_SETS] || EMOJI_SETS.Animals;
+};
+
+const createCardPairs = (theme: string): CardType[] => {
+  const themeEmojis = getThemeEmojis(theme);
+  const pairs = [...themeEmojis, ...themeEmojis];
+  return pairs
+    .sort(() => Math.random() - 0.5)
+    .map((emoji, index) => ({
+      id: index,
+      isFlipped: false,
+      isMatched: false,
+      emoji,
+    }));
+};
 
 const STORAGE_KEY = 'memo-game-players';
 const STORAGE_KEY_STATS = 'memo-game-stats';
+const STORAGE_KEY_SETTINGS = 'memo-game-settings';
 
 const PlayerInfo: React.FC<{
   player: Player;
@@ -111,7 +129,7 @@ const PlayerInfo: React.FC<{
           isCurrentPlayer && { color: '#FFF' },
           nameStyle,
         ]}>
-          {player.name} <Text style={{ fontSize: 14, color: '#666', opacity: 0.6 }}>✎</Text>
+          {player.name}
         </Animated.Text>
       </Pressable>
       <Text style={[
@@ -133,7 +151,9 @@ const formatDuration = (ms: number): string => {
 };
 
 export const GameBoard: React.FC = () => {
-  const [cards, setCards] = useState<CardType[]>(INITIAL_CARDS);
+  const [cards, setCards] = useState<CardType[]>(() => 
+    createCardPairs('Animals') // Default theme
+  );
   const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
@@ -279,13 +299,14 @@ export const GameBoard: React.FC = () => {
       setIsGameOver(true);
       setShowCelebration(true);
 
-      // Only track best time for single player
+      // Only handle best time for single player
       if (players.length === 1) {
         const updateStats = async () => {
           try {
             const savedStats = await AsyncStorage.getItem(STORAGE_KEY_STATS);
             const currentStats = savedStats ? JSON.parse(savedStats) : { bestTime: null, lastGameTime: null };
             
+            // If there's no best time yet, this is the best time
             const isBestTime = !currentStats.bestTime || duration < currentStats.bestTime;
             
             const newStats = {
@@ -303,7 +324,7 @@ export const GameBoard: React.FC = () => {
 
         updateStats();
       } else {
-        // Reset game stats for multiplayer
+        // For multiplayer, don't track best time
         setGameStats({ bestTime: null, lastGameTime: null });
         setIsNewBestTime(false);
       }
@@ -387,8 +408,26 @@ export const GameBoard: React.FC = () => {
     loadSavedPlayers();
   }, []);
 
+  // Load saved settings on mount
+  useEffect(() => {
+    const loadSavedSettings = async () => {
+      try {
+        const savedSettings = await AsyncStorage.getItem(STORAGE_KEY_SETTINGS);
+        if (savedSettings) {
+          const parsedSettings = JSON.parse(savedSettings);
+          setSettings(parsedSettings);
+          setCards(createCardPairs(parsedSettings.cardTheme));
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+
+    loadSavedSettings();
+  }, []);
+
   const resetGame = () => {
-    setCards(INITIAL_CARDS.sort(() => Math.random() - 0.5));
+    setCards(createCardPairs(settings.cardTheme));
     setFlippedIndexes([]);
     setPlayers(prevPlayers => prevPlayers.map(p => ({ ...p, score: 0 })));
     setCurrentPlayerIndex(0);
@@ -436,9 +475,13 @@ export const GameBoard: React.FC = () => {
   };
 
   const handleApplySettings = (newSettings: GameSettings) => {
+    // First, update settings
     setSettings(newSettings);
     
-    // Update number of players if changed
+    // Create new cards with new theme before resetting game
+    const newCards = createCardPairs(newSettings.cardTheme);
+    
+    // Update players if needed
     if (newSettings.playerCount !== players.length) {
       const newPlayers: Player[] = Array(newSettings.playerCount)
         .fill(0)
@@ -450,17 +493,32 @@ export const GameBoard: React.FC = () => {
       setPlayers(newPlayers);
     }
     
+    // Update cards and start new game
+    setCards(newCards);
+    setFlippedIndexes([]);
+    setCurrentPlayerIndex(0);
+    setIsGameOver(false);
+    setStartTime(Date.now());
+    setGameDuration(0);
+    setShowCelebration(false);
+    
     setIsSettingsVisible(false);
-    resetGame(); // Start a new game with new settings
+
+    // Save settings to storage (fixed Async to AsyncStorage)
+    AsyncStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings))
+      .catch(error => console.error('Error saving settings:', error));
   };
 
   const handleResetGame = async () => {
     try {
-      // Clear all stored data
-      await AsyncStorage.multiRemove([STORAGE_KEY, STORAGE_KEY_STATS]);
+      await AsyncStorage.multiRemove([
+        STORAGE_KEY,
+        STORAGE_KEY_STATS,
+        STORAGE_KEY_SETTINGS
+      ]);
       
       // Reset all state
-      setCards(INITIAL_CARDS.sort(() => Math.random() - 0.5));
+      setCards(createCardPairs('Animals'));
       setFlippedIndexes([]);
       setPlayers(INITIAL_PLAYERS);
       setCurrentPlayerIndex(0);
@@ -470,11 +528,10 @@ export const GameBoard: React.FC = () => {
       setGameStats({ bestTime: null, lastGameTime: null });
       setIsNewBestTime(false);
       setSettings({
-        playerCount: 2,
+        playerCount: 1,
         cardTheme: 'Animals',
       });
       
-      // Show confirmation toast or alert
       Alert.alert("Success", "All game data has been reset!");
     } catch (error) {
       console.error('Error resetting game data:', error);
@@ -533,17 +590,29 @@ export const GameBoard: React.FC = () => {
             <Text style={styles.modalTime}>
               Time: {formatDuration(gameDuration)}
             </Text>
-            {players.length === 1 && gameStats.bestTime && (
+            
+            {/* Only show best time section for single player */}
+            {players.length === 1 && (
               <View style={styles.bestTimeContainer}>
                 {isNewBestTime ? (
-                  <BestTimeAnimation />
+                  <>
+                    <BestTimeAnimation />
+                    {gameStats.lastGameTime !== gameStats.bestTime && (
+                      <Text style={[styles.modalTime, styles.previousBestTime]}>
+                        Previous Best: {formatDuration(gameStats.bestTime!)}
+                      </Text>
+                    )}
+                  </>
                 ) : (
-                  <Text style={styles.modalTime}>
-                    Best Time: {formatDuration(gameStats.bestTime)}
-                  </Text>
+                  <>
+                    <Text style={styles.modalTime}>
+                      Best Time: {formatDuration(gameStats.bestTime!)}
+                    </Text>
+                  </>
                 )}
               </View>
             )}
+            
             <Pressable
               style={styles.playAgainButton}
               onPress={resetGame}
@@ -729,5 +798,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 10,
+  },
+  previousBestTime: {
+    fontSize: 14,
+    color: '#888',
+    marginTop: 5,
   },
 }); 

@@ -36,15 +36,15 @@ export const BestTimeAnimation: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
     width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 10,
   },
   text: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#4CAF50',
+    textAlign: 'center',
   },
 }); 
