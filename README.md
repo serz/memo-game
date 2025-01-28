@@ -100,6 +100,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Add card animations
   - [x] Flip animation
   - [x] Match celebration
+  - [x] Matched cards fade to gray
 - [x] Add game animations
   - [x] Match celebration animation
   - [x] Score change animation
@@ -110,7 +111,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - [x] Add haptic feedback
     - [x] Mismatched pairs
     - [x] Win celebration
-  - [ ] Implement sound effects (optional)
+  - [x] Add sound effects
+    - [x] Card flip sound
+    - [x] Match success sound
+    - [x] Victory sound
+    - [x] Best time achievement sound
 
 ### Phase 5: Polish
 - [ ] Add proper error handling

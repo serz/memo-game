@@ -15,6 +15,7 @@ import { BestTimeAnimation } from './animations/BestTimeAnimation';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Settings, GameSettings } from './Settings';
+import { soundManager } from '../utils/sounds';
 
 const EMOJI_SETS = {
   Animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'],
@@ -209,6 +210,14 @@ export const GameBoard: React.FC = () => {
     },
   };
 
+  // Load sounds on mount
+  useEffect(() => {
+    soundManager.loadSounds();
+    return () => {
+      soundManager.unloadSounds();
+    };
+  }, []);
+
   useEffect(() => {
     if (flippedIndexes.length === 2) {
       const [firstIndex, secondIndex] = flippedIndexes;
@@ -216,6 +225,7 @@ export const GameBoard: React.FC = () => {
       const secondCard = cards[secondIndex];
 
       if (firstCard.emoji === secondCard.emoji) {
+        soundManager.playSound('match');
         setShowScoreAnimation(true);
         setTimeout(() => setShowScoreAnimation(false), 1000);
         setMatchedPair([firstIndex, secondIndex]);
@@ -239,7 +249,7 @@ export const GameBoard: React.FC = () => {
         );
         setFlippedIndexes([]);
       } else {
-        // No match - add haptic feedback
+        // No match - only haptic feedback
         const triggerHaptic = async () => {
           try {
             await Haptics.notificationAsync(
@@ -317,6 +327,12 @@ export const GameBoard: React.FC = () => {
             setIsNewBestTime(isBestTime);
             setGameStats(newStats);
             await AsyncStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(newStats));
+
+            if (isBestTime) {
+              await soundManager.playSound('bestTime');
+            } else {
+              await soundManager.playSound('victory');
+            }
           } catch (error) {
             console.error('Error updating game stats:', error);
           }
@@ -327,6 +343,7 @@ export const GameBoard: React.FC = () => {
         // For multiplayer, don't track best time
         setGameStats({ bestTime: null, lastGameTime: null });
         setIsNewBestTime(false);
+        soundManager.playSound('victory');
       }
 
       // Celebration haptic feedback
@@ -437,10 +454,12 @@ export const GameBoard: React.FC = () => {
     setShowCelebration(false);
   };
 
-  const handleCardPress = (index: number) => {
+  const handleCardPress = async (index: number) => {
     if (flippedIndexes.length >= 2 || cards[index].isMatched) return;
     if (cards[index].isFlipped) return;
 
+    await soundManager.playSound('flip');
+    
     setCards(prevCards =>
       prevCards.map((card, i) =>
         i === index ? { ...card, isFlipped: true } : card

@@ -44,17 +44,6 @@ export const Card: React.FC<CardProps> = ({
     }
   }, [showMatchAnimation]);
 
-  React.useEffect(() => {
-    if (isMatched) {
-      scale.value = withSequence(
-        withSpring(1.1),
-        withSpring(1),
-        withSpring(1.1),
-        withSpring(1)
-      );
-    }
-  }, [isMatched]);
-
   const cardStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: scale.value },
@@ -81,13 +70,26 @@ export const Card: React.FC<CardProps> = ({
   return (
     <Pressable style={styles.container} onPress={onPress}>
       <Animated.View style={[styles.cardWrapper, cardStyle]}>
-        <Animated.View style={[styles.cardContainer, styles.cardBack, backAnimatedStyle]}>
+        <Animated.View 
+          style={[
+            styles.cardContainer, 
+            styles.cardBack, 
+            backAnimatedStyle,
+          ]}
+        >
           <View style={styles.cardContent}>
             <Text style={styles.pattern}>🎴</Text>
           </View>
         </Animated.View>
         
-        <Animated.View style={[styles.cardContainer, styles.cardFront, frontAnimatedStyle]}>
+        <Animated.View 
+          style={[
+            styles.cardContainer, 
+            styles.cardFront,
+            frontAnimatedStyle,
+            isMatched && styles.matchedCard,
+          ]}
+        >
           <View style={styles.cardContent}>
             <Text style={styles.emoji}>{emoji}</Text>
           </View>
@@ -140,5 +142,10 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: CARD_SIZE * 0.5,
+  },
+  matchedCard: {
+    backgroundColor: '#E8E8E8',
+    borderColor: '#BDBDBD',
+    borderWidth: 2,
   },
 }); 
