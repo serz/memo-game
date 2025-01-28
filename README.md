@@ -88,7 +88,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     - [x] Card theme selection
       - [x] Animals theme
       - [x] Food theme
-      - [x] Random mix theme
+      - [x] Random theme (randomly selects one theme)
+      - [x] Mixed theme (combines emojis from all themes)
     - [x] Reset game data option
   - [x] Add apply/cancel buttons
 - [x] Add player name input

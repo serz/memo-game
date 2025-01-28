@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Modal, Pressable, Alert } from 'react-native';
+import { StyleSheet, View, Text, Modal, Pressable, Alert, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
@@ -23,9 +23,13 @@ export interface GameSettings {
   cardTheme: string;
 }
 
-const THEMES = ['Animals', 'Food', 'Random'];
+const THEMES = ['Animals', 'Food', 'Random', 'Mixed'] as const;
 const MIN_PLAYERS = 1;
 const MAX_PLAYERS = 4;
+
+// Get screen height
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const MAX_DROPDOWN_HEIGHT = SCREEN_HEIGHT * 0.3; // 30% of screen height
 
 export const Settings: React.FC<SettingsProps> = ({
   visible,
@@ -41,9 +45,9 @@ export const Settings: React.FC<SettingsProps> = ({
   // Animation values
   const buttonScale = useSharedValue(1);
   const numberSlide = useSharedValue(0);
-  const dropdownHeight = useSharedValue(0);
   const chevronRotate = useSharedValue(0);
   const resetScale = useSharedValue(1);
+  const dropdownHeight = useSharedValue(0);
 
   const handlePlayerCount = (increment: boolean) => {
     // Button press animation
@@ -167,7 +171,7 @@ export const Settings: React.FC<SettingsProps> = ({
             </View>
           </View>
 
-          <View style={styles.settingSection}>
+          <View style={[styles.settingSection, styles.themeSection]}>
             <Text style={styles.sectionTitle}>Card Theme</Text>
             <Pressable 
               style={styles.themeSelector}
@@ -179,22 +183,36 @@ export const Settings: React.FC<SettingsProps> = ({
               </Animated.View>
             </Pressable>
             
-            <Animated.View style={[styles.themeDropdown, dropdownAnimatedStyle]}>
-              {THEMES.map((theme) => (
-                <Pressable
-                  key={theme}
-                  style={[styles.themeOption, theme === cardTheme && styles.themeOptionSelected]}
-                  onPress={() => {
-                    setCardTheme(theme);
-                    toggleThemes();
-                  }}
+            <View style={styles.themeDropdownContainer}>
+              <Animated.View style={[styles.themeDropdown, dropdownAnimatedStyle]}>
+                <ScrollView 
+                  bounces={false}
+                  showsVerticalScrollIndicator={true}
+                  style={styles.themeScrollView}
                 >
-                  <Text style={[styles.themeOptionText, theme === cardTheme && styles.themeOptionTextSelected]}>
-                    {theme}
-                  </Text>
-                </Pressable>
-              ))}
-            </Animated.View>
+                  {THEMES.map((theme) => (
+                    <Pressable
+                      key={theme}
+                      style={[
+                        styles.themeOption,
+                        theme === cardTheme && styles.themeOptionSelected
+                      ]}
+                      onPress={() => {
+                        setCardTheme(theme);
+                        toggleThemes();
+                      }}
+                    >
+                      <Text style={[
+                        styles.themeOptionText,
+                        theme === cardTheme && styles.themeOptionTextSelected
+                      ]}>
+                        {theme}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </Animated.View>
+            </View>
           </View>
 
           <Animated.View style={resetAnimatedStyle}>
@@ -249,6 +267,8 @@ const styles = StyleSheet.create({
   },
   settingSection: {
     marginBottom: 20,
+    position: 'relative',
+    zIndex: 2,
   },
   sectionTitle: {
     fontSize: 16,
@@ -332,23 +352,38 @@ const styles = StyleSheet.create({
   controlButtonDisabled: {
     backgroundColor: '#BDBDBD',
   },
+  themeSection: {
+    position: 'relative',
+    zIndex: 3,
+  },
+  themeDropdownContainer: {
+    position: 'relative',
+    zIndex: 4,
+  },
   themeDropdown: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
     backgroundColor: 'white',
     borderRadius: 8,
-    marginTop: 4,
     borderWidth: 1,
     borderColor: '#ddd',
-    zIndex: 1000,
     elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    overflow: 'hidden',
+    maxHeight: MAX_DROPDOWN_HEIGHT,
+  },
+  themeScrollView: {
+    flexGrow: 0,
   },
   themeOption: {
     padding: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    backgroundColor: 'white',
   },
   themeOptionSelected: {
     backgroundColor: '#E3F2FD',

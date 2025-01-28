@@ -19,9 +19,10 @@ import { soundManager } from '../utils/sounds';
 
 const EMOJI_SETS = {
   Animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'],
-  Food: ['🍕', '🍔', '🌭', '🍟', '🌮', '🍜', '🍙', '🍎', '🍫', '🍦'],
-  Random: [] as string[], // Will be filled with random mix of both sets
-};
+  Food: ['🍕', '🍔', '🌭', '🍟', '🌮', '🍜', '🍱', '🍎', '🍫', '🍦'],
+  Random: 'random', // Will randomly select one of the sets
+  Mixed: 'mixed',   // Will mix emojis from all sets
+} as const;
 
 interface CardType {
   id: number;
@@ -46,13 +47,29 @@ const INITIAL_PLAYERS: Player[] = [
 ];
 
 const getThemeEmojis = (theme: string): string[] => {
+  // Helper function to shuffle array
+  const shuffle = (array: string[]) => {
+    return array.sort(() => Math.random() - 0.5);
+  };
+
+  // For Random theme - select one set randomly
   if (theme === 'Random') {
-    // Combine both sets and shuffle
-    const allEmojis = [...EMOJI_SETS.Animals, ...EMOJI_SETS.Food];
-    const shuffled = allEmojis.sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 10); // Take first 10 emojis
+    const themes = ['Animals', 'Food'];
+    const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+    return EMOJI_SETS[randomTheme as keyof typeof EMOJI_SETS] as string[];
   }
-  return EMOJI_SETS[theme as keyof typeof EMOJI_SETS] || EMOJI_SETS.Animals;
+
+  // For Mixed theme - combine all sets and select random emojis
+  if (theme === 'Mixed') {
+    const allEmojis = [
+      ...EMOJI_SETS.Animals,
+      ...EMOJI_SETS.Food,
+    ];
+    return shuffle(allEmojis).slice(0, 10); // Take 10 random emojis from all sets
+  }
+
+  // For specific themes
+  return EMOJI_SETS[theme as keyof typeof EMOJI_SETS] as string[] || EMOJI_SETS.Animals;
 };
 
 const createCardPairs = (theme: string): CardType[] => {
