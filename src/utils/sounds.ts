@@ -2,9 +2,19 @@ import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 import { errorHandler, ErrorType } from './errorHandling';
 
+// Define sound files as a frozen constant
+const SOUND_FILES = Object.freeze({
+  flip: require('../../assets/sounds/card-flip.mp3'),
+  match: require('../../assets/sounds/match.mp3'),
+  victory: require('../../assets/sounds/victory.mp3'),
+}) as const;
+
+// Define type for sound names based on the constant
+type SoundName = keyof typeof SOUND_FILES;
+
 class SoundManager {
   private static instance: SoundManager;
-  private sounds: { [key: string]: Audio.Sound | null } = {};
+  private sounds: { [K in SoundName]?: Audio.Sound | null } = {};
   private isLoading = false;
 
   private constructor() {
@@ -38,13 +48,7 @@ class SoundManager {
     this.isLoading = true;
 
     try {
-      const soundFiles = {
-        flip: require('../../assets/sounds/card-flip.mp3'),
-        match: require('../../assets/sounds/match.mp3'),
-        victory: require('../../assets/sounds/victory.mp3'),
-      };
-
-      for (const [key, file] of Object.entries(soundFiles)) {
+      for (const [key, file] of Object.entries(SOUND_FILES)) {
         const sound = new Audio.Sound();
         try {
           await sound.loadAsync(file, {
@@ -55,10 +59,10 @@ class SoundManager {
             shouldCorrectPitch: true,
             playsInSilentModeIOS: true,
           });
-          this.sounds[key] = sound;
+          this.sounds[key as SoundName] = sound;
         } catch (error) {
           errorHandler.handleSoundError(error);
-          this.sounds[key] = null;
+          this.sounds[key as SoundName] = null;
         }
       }
     } catch (error) {
@@ -68,7 +72,7 @@ class SoundManager {
     }
   }
 
-  async playSound(soundName: 'flip' | 'match' | 'victory') {
+  async playSound(soundName: SoundName) {
     const sound = this.sounds[soundName];
     if (!sound) {
       errorHandler.handleSoundError(new Error(`Sound ${soundName} not available`));
@@ -103,7 +107,7 @@ class SoundManager {
         }
       }
     }
-    this.sounds = {};
+    this.sounds = {} as { [K in SoundName]?: Audio.Sound | null };
   }
 }
 

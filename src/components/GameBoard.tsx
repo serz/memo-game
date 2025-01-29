@@ -236,63 +236,144 @@ export const GameBoard: React.FC = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (flippedIndexes.length === 2) {
-      const [firstIndex, secondIndex] = flippedIndexes;
-      const firstCard = cards[firstIndex];
-      const secondCard = cards[secondIndex];
+  // Extract card matching logic
+  const handleCardsMatch = (firstIndex: number, secondIndex: number) => {
+    soundManager.playSound('match');
+    setShowScoreAnimation(true);
+    setTimeout(() => setShowScoreAnimation(false), 1000);
+    
+    setMatchedPair([firstIndex, secondIndex]);
+    setTimeout(() => setMatchedPair([]), 500);
 
-      if (firstCard.emoji === secondCard.emoji) {
-        soundManager.playSound('match');
-        setShowScoreAnimation(true);
-        setTimeout(() => setShowScoreAnimation(false), 1000);
-        setMatchedPair([firstIndex, secondIndex]);
-        setTimeout(() => {
-          setMatchedPair([]);
-        }, 500);
+    // Update matched cards and player score in one batch
+    setCards(prevCards =>
+      prevCards.map((card, index) =>
+        index === firstIndex || index === secondIndex
+          ? { ...card, isMatched: true }
+          : card
+      )
+    );
 
-        setCards(prevCards =>
-          prevCards.map((card, index) =>
-            index === firstIndex || index === secondIndex
-              ? { ...card, isMatched: true }
-              : card
-          )
+    setPlayers(prevPlayers =>
+      prevPlayers.map((player, index) =>
+        index === currentPlayerIndex
+          ? { ...player, score: player.score + 1 }
+          : player
+      )
+    );
+
+    setFlippedIndexes([]);
+  };
+
+  // Extract mismatch handling
+  const handleCardsMismatch = (firstIndex: number, secondIndex: number) => {
+    const triggerHaptic = async () => {
+      try {
+        await Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Error
         );
-        setPlayers(prevPlayers =>
-          prevPlayers.map((player, index) =>
-            index === currentPlayerIndex
-              ? { ...player, score: player.score + 1 }
-              : player
-          )
-        );
-        setFlippedIndexes([]);
-      } else {
-        // No match - only haptic feedback
-        const triggerHaptic = async () => {
-          try {
-            await Haptics.notificationAsync(
-              Haptics.NotificationFeedbackType.Error
-            );
-          } catch (error) {
-            console.log('Haptics error:', error);
-          }
-        };
-        triggerHaptic();
-        
-        setTimeout(() => {
-          setCards(prevCards =>
-            prevCards.map((card, index) =>
-              index === firstIndex || index === secondIndex
-                ? { ...card, isFlipped: false }
-                : card
-            )
-          );
-          setFlippedIndexes([]);
-          setCurrentPlayerIndex((prevIndex) => (prevIndex + 1) % players.length);
-        }, 1000);
+      } catch (error) {
+        errorHandler.handleGameStateError(error);
       }
+    };
+    triggerHaptic();
+
+    // Use a single setTimeout to batch state updates
+    setTimeout(() => {
+      setCards(prevCards =>
+        prevCards.map((card, index) =>
+          index === firstIndex || index === secondIndex
+            ? { ...card, isFlipped: false }
+            : card
+        )
+      );
+      setFlippedIndexes([]);
+      setCurrentPlayerIndex(prev => (prev + 1) % players.length);
+    }, 1000);
+  };
+
+  // Extract game completion handling
+  const handleGameCompletion = async (duration: number) => {
+    if (players.length === 1) {
+      await handleSinglePlayerWin(duration);
+    } else {
+      handleMultiPlayerWin();
     }
-  }, [flippedIndexes, cards, currentPlayerIndex, players.length]);
+  };
+
+  // Extract single player win logic
+  const handleSinglePlayerWin = async (duration: number) => {
+    try {
+      const savedStats = await AsyncStorage.getItem(STORAGE_KEY_STATS);
+      const currentStats = savedStats 
+        ? JSON.parse(savedStats) 
+        : { bestTime: null, lastGameTime: null };
+      
+      const isBestTime = !currentStats.bestTime || duration < currentStats.bestTime;
+      const newStats = {
+        bestTime: isBestTime ? duration : currentStats.bestTime,
+        lastGameTime: duration,
+      };
+
+      setIsNewBestTime(isBestTime);
+      setGameStats(newStats);
+      await AsyncStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(newStats));
+
+      if (isBestTime) {
+        await soundManager.playSound('victory');
+      }
+    } catch (error) {
+      errorHandler.handleGameStateError(error);
+    }
+  };
+
+  // Extract multiplayer win logic
+  const handleMultiPlayerWin = () => {
+    const maxScore = Math.max(...players.map(p => p.score));
+    const winners = players.filter(p => p.score === maxScore);
+    
+    if (winners.length === 1) {
+      soundManager.playSound('victory');
+    }
+  };
+
+  // Update the main effect with extracted functions
+  useEffect(() => {
+    if (flippedIndexes.length !== 2) return;
+
+    const [firstIndex, secondIndex] = flippedIndexes;
+    const firstCard = cards[firstIndex];
+    const secondCard = cards[secondIndex];
+
+    if (firstCard.emoji === secondCard.emoji) {
+      handleCardsMatch(firstIndex, secondIndex);
+    } else {
+      handleCardsMismatch(firstIndex, secondIndex);
+    }
+  }, [flippedIndexes]);
+
+  // Update game completion effect
+  useEffect(() => {
+    const allMatched = cards.every(card => card.isMatched);
+    if (!allMatched || !startTime) return;
+
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
+    setGameDuration(duration);
+    setIsGameOver(true);
+    setShowCelebration(true);
+
+    handleGameCompletion(duration);
+
+    // Cleanup celebration
+    const celebrationTimer = setTimeout(() => {
+      setShowCelebration(false);
+    }, 5000);
+
+    // Cleanup timer on unmount
+    return () => clearTimeout(celebrationTimer);
+  }, [cards, startTime]);
 
   // Initialize start time when component mounts or game resets
   useEffect(() => {
@@ -315,80 +396,6 @@ export const GameBoard: React.FC = () => {
     };
     loadGameStats();
   }, []);
-
-  // Update win condition check
-  useEffect(() => {
-    const allMatched = cards.every(card => card.isMatched);
-    if (allMatched && startTime) {
-      const endTime = Date.now();
-      const duration = endTime - startTime;
-      
-      setGameDuration(duration);
-      setIsGameOver(true);
-      setShowCelebration(true);
-
-      // Only handle best time for single player
-      if (players.length === 1) {
-        const updateStats = async () => {
-          try {
-            const savedStats = await AsyncStorage.getItem(STORAGE_KEY_STATS);
-            const currentStats = savedStats ? JSON.parse(savedStats) : { bestTime: null, lastGameTime: null };
-            
-            // If there's no best time yet, this is the best time
-            const isBestTime = !currentStats.bestTime || duration < currentStats.bestTime;
-            
-            const newStats = {
-              bestTime: isBestTime ? duration : currentStats.bestTime,
-              lastGameTime: duration,
-            };
-
-            setIsNewBestTime(isBestTime);
-            setGameStats(newStats);
-            await AsyncStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(newStats));
-
-            if (isBestTime) {
-              await soundManager.playSound('victory');
-            }
-          } catch (error) {
-            errorHandler.handleGameStateError(error);
-          }
-        };
-
-        updateStats();
-      } else {
-        // For multiplayer, check for tie
-        const maxScore = Math.max(...players.map(p => p.score));
-        const winners = players.filter(p => p.score === maxScore);
-        
-        // Only play victory sound if there's a single winner
-        if (winners.length === 1) {
-          soundManager.playSound('victory');
-        }
-      }
-
-      // Celebration haptic feedback
-      const triggerCelebrationHaptic = async () => {
-        try {
-          await Haptics.notificationAsync(
-            Haptics.NotificationFeedbackType.Success
-          );
-          
-          // Follow with repeated heavy impacts
-          for (let i = 0; i < 5; i++) {
-            await new Promise(resolve => setTimeout(resolve, 200));
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-          }
-        } catch (error) {
-          errorHandler.handleGameStateError(error);
-        }
-      };
-      triggerCelebrationHaptic();
-
-      setTimeout(() => {
-        setShowCelebration(false);
-      }, 5000);
-    }
-  }, [cards, startTime, players.length]);
 
   const getWinner = () => {
     if (players.length === 1) {
