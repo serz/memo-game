@@ -14,29 +14,13 @@ export const Celebration: React.FC = () => {
   const rotate = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(
-        withSpring(1.2),
-        withSpring(1)
-      ),
-      3
-    );
+    scale.value = withRepeat(withSequence(withSpring(1.2), withSpring(1)), 3);
 
-    rotate.value = withRepeat(
-      withSequence(
-        withSpring(10),
-        withSpring(-10),
-        withSpring(0)
-      ),
-      3
-    );
+    rotate.value = withRepeat(withSequence(withSpring(10), withSpring(-10), withSpring(0)), 3);
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: scale.value },
-      { rotate: `${rotate.value}deg` },
-    ],
+    transform: [{ scale: scale.value }, { rotate: `${rotate.value}deg` }],
   }));
 
   return (
@@ -51,10 +35,10 @@ export const Celebration: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     padding: 20,
   },
-}); 
+});

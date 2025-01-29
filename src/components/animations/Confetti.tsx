@@ -9,7 +9,16 @@ import Animated, {
 } from 'react-native-reanimated';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const CONFETTI_COLORS = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#gold', '#silver'];
+const CONFETTI_COLORS = [
+  '#ff0000',
+  '#00ff00',
+  '#0000ff',
+  '#ffff00',
+  '#ff00ff',
+  '#00ffff',
+  '#gold',
+  '#silver',
+];
 
 interface ConfettiPieceProps {
   delay: number;
@@ -26,32 +35,17 @@ const ConfettiPiece: React.FC<ConfettiPieceProps> = ({ delay, color, size }) => 
   useEffect(() => {
     translateY.value = withDelay(
       delay,
-      withSequence(
-        withTiming(SCREEN_HEIGHT, { duration: 3000 })
-      )
+      withSequence(withTiming(SCREEN_HEIGHT, { duration: 3000 }))
     );
 
     translateX.value = withDelay(
       delay,
-      withSequence(
-        withTiming(
-          (Math.random() - 0.5) * SCREEN_WIDTH,
-          { duration: 3000 }
-        )
-      )
+      withSequence(withTiming((Math.random() - 0.5) * SCREEN_WIDTH, { duration: 3000 }))
     );
 
-    rotate.value = withDelay(
-      delay,
-      withSequence(
-        withTiming(360 * 8, { duration: 3000 })
-      )
-    );
+    rotate.value = withDelay(delay, withSequence(withTiming(360 * 8, { duration: 3000 })));
 
-    opacity.value = withDelay(
-      delay + 2500,
-      withTiming(0, { duration: 500 })
-    );
+    opacity.value = withDelay(delay + 2500, withTiming(0, { duration: 500 }));
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -64,30 +58,32 @@ const ConfettiPiece: React.FC<ConfettiPieceProps> = ({ delay, color, size }) => 
   }));
 
   return (
-    <Animated.View 
+    <Animated.View
       style={[
-        styles.confetti, 
-        animatedStyle, 
-        { 
+        styles.confetti,
+        animatedStyle,
+        {
           backgroundColor: color,
           width: size,
           height: size,
-        }
-      ]} 
+        },
+      ]}
     />
   );
 };
 
 export const Confetti: React.FC = () => {
   const createConfettiWave = (waveDelay: number) => {
-    return Array(30).fill(0).map((_, index) => (
-      <ConfettiPiece
-        key={`${waveDelay}-${index}`}
-        delay={waveDelay + Math.random() * 1000}
-        color={CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]}
-        size={Math.random() * 15 + 10}
-      />
-    ));
+    return Array(30)
+      .fill(0)
+      .map((_, index) => (
+        <ConfettiPiece
+          key={`${waveDelay}-${index}`}
+          delay={waveDelay + Math.random() * 1000}
+          color={CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]}
+          size={Math.random() * 15 + 10}
+        />
+      ));
   };
 
   return (
@@ -101,8 +97,8 @@ export const Confetti: React.FC = () => {
 
 const styles = StyleSheet.create({
   confetti: {
+    borderRadius: 3,
     position: 'absolute',
     top: -20,
-    borderRadius: 3,
   },
-}); 
+});

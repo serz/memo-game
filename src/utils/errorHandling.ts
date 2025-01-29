@@ -24,11 +24,11 @@ class ErrorHandler {
     return ErrorHandler.instance;
   }
 
-  async handleError({ 
-    type, 
-    message, 
-    silent = false, 
-    retryAction 
+  async handleError({
+    type,
+    message,
+    silent = false,
+    retryAction,
   }: Readonly<ErrorConfig>): Promise<void> {
     // Log error for debugging
     console.error(`[${type}] ${message}`);
@@ -38,28 +38,24 @@ class ErrorHandler {
 
     if (retryAction) {
       // Show alert with retry option
-      Alert.alert(
-        'Something went wrong',
-        message,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Retry',
-            onPress: async () => {
-              try {
-                await retryAction();
-              } catch (error) {
-                // If retry fails, show final error
-                await this.handleError({
-                  type,
-                  message: 'Unable to recover. Please restart the app.',
-                  silent: false,
-                });
-              }
-            },
+      Alert.alert('Something went wrong', message, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Retry',
+          onPress: async () => {
+            try {
+              await retryAction();
+            } catch (error) {
+              // If retry fails, show final error
+              await this.handleError({
+                type,
+                message: 'Unable to recover. Please restart the app.',
+                silent: false,
+              });
+            }
           },
-        ]
-      );
+        },
+      ]);
     } else {
       // Show simple alert for non-recoverable errors
       Alert.alert('Error', message);
@@ -94,4 +90,4 @@ class ErrorHandler {
   }
 }
 
-export const errorHandler = ErrorHandler.getInstance(); 
+export const errorHandler = ErrorHandler.getInstance();

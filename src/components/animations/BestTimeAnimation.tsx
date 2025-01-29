@@ -12,13 +12,7 @@ export const BestTimeAnimation: React.FC = () => {
   const scale = useSharedValue(1);
 
   useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(
-        withSpring(1.2),
-        withSpring(1)
-      ),
-      3
-    );
+    scale.value = withRepeat(withSequence(withSpring(1.2), withSpring(1)), 3);
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -27,24 +21,22 @@ export const BestTimeAnimation: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Animated.Text style={[styles.text, animatedStyle]}>
-        🎉 New Best Time! 🎉
-      </Animated.Text>
+      <Animated.Text style={[styles.text, animatedStyle]}>🎉 New Best Time! 🎉</Animated.Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 10,
+    width: '100%',
   },
   text: {
+    color: '#4CAF50',
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4CAF50',
     textAlign: 'center',
   },
-}); 
+});

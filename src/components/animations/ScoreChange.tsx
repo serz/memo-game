@@ -19,12 +19,12 @@ export const ScoreChange: React.FC<ScoreChangeProps> = ({ value }) => {
   useEffect(() => {
     opacity.value = 1;
     translateY.value = 0;
-    
+
     opacity.value = withSequence(
       withTiming(1, { duration: 200 }),
       withTiming(0, { duration: 800 })
     );
-    
+
     translateY.value = withSpring(-30);
   }, [value]);
 
@@ -33,18 +33,14 @@ export const ScoreChange: React.FC<ScoreChangeProps> = ({ value }) => {
     transform: [{ translateY: translateY.value }],
   }));
 
-  return (
-    <Animated.Text style={[styles.score, animatedStyle]}>
-      +1
-    </Animated.Text>
-  );
+  return <Animated.Text style={[styles.score, animatedStyle]}>+1</Animated.Text>;
 };
 
 const styles = StyleSheet.create({
   score: {
-    position: 'absolute',
+    color: '#4CAF50',
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    position: 'absolute',
   },
-}); 
+});

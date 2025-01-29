@@ -111,4 +111,4 @@ class SoundManager {
   }
 }
 
-export const soundManager = SoundManager.getInstance(); 
+export const soundManager = SoundManager.getInstance();

@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, Text, Modal, Pressable, TextInput, Alert } from 'react-native';
-import Animated, { 
-  useAnimatedStyle, 
-  withSpring, 
+import {
+  StyleSheet,
+  View,
+  SafeAreaView,
+  Text,
+  Modal,
+  Pressable,
+  TextInput,
+  Alert,
+} from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
   withSequence,
   withTiming,
   useSharedValue,
@@ -22,7 +31,7 @@ const EMOJI_SETS = {
   Animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'],
   Food: ['🍕', '🍔', '🌭', '🍟', '🌮', '🍜', '🍱', '🍎', '🍫', '🍦'],
   Random: 'random', // Will randomly select one of the sets
-  Mixed: 'mixed',   // Will mix emojis from all sets
+  Mixed: 'mixed', // Will mix emojis from all sets
 } as const;
 
 interface CardType {
@@ -43,9 +52,7 @@ interface GameStats {
   lastGameTime: number | null;
 }
 
-const INITIAL_PLAYERS: Player[] = [
-  { id: 1, name: 'Player 1', score: 0 },
-];
+const INITIAL_PLAYERS: Player[] = [{ id: 1, name: 'Player 1', score: 0 }];
 
 const getThemeEmojis = (theme: string): string[] => {
   // Helper function to shuffle array
@@ -62,15 +69,12 @@ const getThemeEmojis = (theme: string): string[] => {
 
   // For Mixed theme - combine all sets and select random emojis
   if (theme === 'Mixed') {
-    const allEmojis = [
-      ...EMOJI_SETS.Animals,
-      ...EMOJI_SETS.Food,
-    ];
+    const allEmojis = [...EMOJI_SETS.Animals, ...EMOJI_SETS.Food];
     return shuffle(allEmojis).slice(0, 10); // Take 10 random emojis from all sets
   }
 
   // For specific themes
-  return EMOJI_SETS[theme as keyof typeof EMOJI_SETS] as string[] || EMOJI_SETS.Animals;
+  return (EMOJI_SETS[theme as keyof typeof EMOJI_SETS] as string[]) || EMOJI_SETS.Animals;
 };
 
 const createCardPairs = (theme: string): CardType[] => {
@@ -102,10 +106,7 @@ const PlayerInfo: React.FC<{
 
   useEffect(() => {
     if (isCurrentPlayer) {
-      scale.value = withSequence(
-        withSpring(1.1),
-        withSpring(1)
-      );
+      scale.value = withSequence(withSpring(1.1), withSpring(1));
       opacity.value = withTiming(1);
     } else {
       scale.value = withSpring(1);
@@ -114,10 +115,7 @@ const PlayerInfo: React.FC<{
   }, [isCurrentPlayer]);
 
   const animateName = () => {
-    nameScale.value = withSequence(
-      withSpring(1.2),
-      withSpring(1)
-    );
+    nameScale.value = withSequence(withSpring(1.2), withSpring(1));
   };
 
   // Add effect to animate name when it changes
@@ -135,26 +133,19 @@ const PlayerInfo: React.FC<{
   }));
 
   return (
-    <Animated.View 
-      style={[
-        style,
-        isCurrentPlayer && styles.currentPlayer,
-        animatedStyle,
-      ]}
-    >
+    <Animated.View style={[style, isCurrentPlayer && styles.currentPlayer, animatedStyle]}>
       <Pressable onPress={() => onNameClick(player)}>
-        <Animated.Text style={[
-          { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-          isCurrentPlayer && { color: '#FFF' },
-          nameStyle,
-        ]}>
+        <Animated.Text
+          style={[
+            { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 4 },
+            isCurrentPlayer && { color: '#FFF' },
+            nameStyle,
+          ]}
+        >
           {player.name}
         </Animated.Text>
       </Pressable>
-      <Text style={[
-        { fontSize: 14, color: '#666' },
-        isCurrentPlayer && { color: '#FFF' },
-      ]}>
+      <Text style={[{ fontSize: 14, color: '#666' }, isCurrentPlayer && { color: '#FFF' }]}>
         Score: {player.score}
       </Text>
     </Animated.View>
@@ -170,8 +161,8 @@ const formatDuration = (ms: number): string => {
 };
 
 export const GameBoard: React.FC = () => {
-  const [cards, setCards] = useState<CardType[]>(() => 
-    createCardPairs('Animals') // Default theme
+  const [cards, setCards] = useState<CardType[]>(
+    () => createCardPairs('Animals') // Default theme
   );
   const [flippedIndexes, setFlippedIndexes] = useState<number[]>([]);
   const [players, setPlayers] = useState<Player[]>(INITIAL_PLAYERS);
@@ -241,24 +232,20 @@ export const GameBoard: React.FC = () => {
     soundManager.playSound('match');
     setShowScoreAnimation(true);
     setTimeout(() => setShowScoreAnimation(false), 1000);
-    
+
     setMatchedPair([firstIndex, secondIndex]);
     setTimeout(() => setMatchedPair([]), 500);
 
     // Update matched cards and player score in one batch
     setCards(prevCards =>
       prevCards.map((card, index) =>
-        index === firstIndex || index === secondIndex
-          ? { ...card, isMatched: true }
-          : card
+        index === firstIndex || index === secondIndex ? { ...card, isMatched: true } : card
       )
     );
 
     setPlayers(prevPlayers =>
       prevPlayers.map((player, index) =>
-        index === currentPlayerIndex
-          ? { ...player, score: player.score + 1 }
-          : player
+        index === currentPlayerIndex ? { ...player, score: player.score + 1 } : player
       )
     );
 
@@ -269,9 +256,7 @@ export const GameBoard: React.FC = () => {
   const handleCardsMismatch = (firstIndex: number, secondIndex: number) => {
     const triggerHaptic = async () => {
       try {
-        await Haptics.notificationAsync(
-          Haptics.NotificationFeedbackType.Error
-        );
+        await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       } catch (error) {
         errorHandler.handleGameStateError(error);
       }
@@ -282,9 +267,7 @@ export const GameBoard: React.FC = () => {
     setTimeout(() => {
       setCards(prevCards =>
         prevCards.map((card, index) =>
-          index === firstIndex || index === secondIndex
-            ? { ...card, isFlipped: false }
-            : card
+          index === firstIndex || index === secondIndex ? { ...card, isFlipped: false } : card
         )
       );
       setFlippedIndexes([]);
@@ -305,10 +288,10 @@ export const GameBoard: React.FC = () => {
   const handleSinglePlayerWin = async (duration: number) => {
     try {
       const savedStats = await AsyncStorage.getItem(STORAGE_KEY_STATS);
-      const currentStats = savedStats 
-        ? JSON.parse(savedStats) 
+      const currentStats = savedStats
+        ? JSON.parse(savedStats)
         : { bestTime: null, lastGameTime: null };
-      
+
       const isBestTime = !currentStats.bestTime || duration < currentStats.bestTime;
       const newStats = {
         bestTime: isBestTime ? duration : currentStats.bestTime,
@@ -331,7 +314,7 @@ export const GameBoard: React.FC = () => {
   const handleMultiPlayerWin = () => {
     const maxScore = Math.max(...players.map(p => p.score));
     const winners = players.filter(p => p.score === maxScore);
-    
+
     if (winners.length === 1) {
       soundManager.playSound('victory');
     }
@@ -359,7 +342,7 @@ export const GameBoard: React.FC = () => {
 
     const endTime = Date.now();
     const duration = endTime - startTime;
-    
+
     setGameDuration(duration);
     setIsGameOver(true);
     setShowCelebration(true);
@@ -408,22 +391,19 @@ export const GameBoard: React.FC = () => {
 
   const getWinnerDisplay = () => {
     if (players.length === 1) {
-      return (
-        <Text style={styles.modalScores}>
-          {`Pairs Found: ${players[0].score}`}
-        </Text>
-      );
+      return <Text style={styles.modalScores}>{`Pairs Found: ${players[0].score}`}</Text>;
     }
-    
+
     const maxScore = Math.max(...players.map(p => p.score));
     const winners = players.filter(p => p.score === maxScore);
     const isTie = winners.length > 1;
-    
+
     return (
       <Text style={styles.modalScores}>
-        {players.map(player => (
-          `${player.score === maxScore && !isTie ? '🏆 ' : ''}${player.name}: ${player.score}\n`
-        ))}
+        {players.map(
+          player =>
+            `${player.score === maxScore && !isTie ? '🏆 ' : ''}${player.name}: ${player.score}\n`
+        )}
       </Text>
     );
   };
@@ -435,10 +415,10 @@ export const GameBoard: React.FC = () => {
         const savedPlayers = await AsyncStorage.getItem(STORAGE_KEY);
         if (savedPlayers) {
           const parsedPlayers = JSON.parse(savedPlayers);
-          setPlayers(prevPlayers => 
+          setPlayers(prevPlayers =>
             prevPlayers.map(p => ({
               ...p,
-              name: parsedPlayers.find((sp: Player) => sp.id === p.id)?.name || p.name
+              name: parsedPlayers.find((sp: Player) => sp.id === p.id)?.name || p.name,
             }))
           );
         }
@@ -484,13 +464,11 @@ export const GameBoard: React.FC = () => {
     if (cards[index].isFlipped) return;
 
     await soundManager.playSound('flip');
-    
+
     setCards(prevCards =>
-      prevCards.map((card, i) =>
-        i === index ? { ...card, isFlipped: true } : card
-      )
+      prevCards.map((card, i) => (i === index ? { ...card, isFlipped: true } : card))
     );
-    
+
     setFlippedIndexes(prev => [...prev, index]);
   };
 
@@ -503,9 +481,7 @@ export const GameBoard: React.FC = () => {
     if (!editingPlayer || !newPlayerName.trim()) return;
 
     const updatedPlayers = players.map(p =>
-      p.id === editingPlayer.id
-        ? { ...p, name: newPlayerName.trim() }
-        : p
+      p.id === editingPlayer.id ? { ...p, name: newPlayerName.trim() } : p
     );
 
     try {
@@ -525,10 +501,10 @@ export const GameBoard: React.FC = () => {
   const handleApplySettings = (newSettings: GameSettings) => {
     // First, update settings
     setSettings(newSettings);
-    
+
     // Create new cards with new theme before resetting game
     const newCards = createCardPairs(newSettings.cardTheme);
-    
+
     // Update players if needed
     if (newSettings.playerCount !== players.length) {
       const newPlayers: Player[] = Array(newSettings.playerCount)
@@ -540,7 +516,7 @@ export const GameBoard: React.FC = () => {
         }));
       setPlayers(newPlayers);
     }
-    
+
     // Update cards and start new game
     setCards(newCards);
     setFlippedIndexes([]);
@@ -549,22 +525,19 @@ export const GameBoard: React.FC = () => {
     setStartTime(Date.now());
     setGameDuration(0);
     setShowCelebration(false);
-    
+
     setIsSettingsVisible(false);
 
     // Save settings to storage (fixed Async to AsyncStorage)
-    AsyncStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings))
-      .catch(error => console.error('Error saving settings:', error));
+    AsyncStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings)).catch(error =>
+      console.error('Error saving settings:', error)
+    );
   };
 
   const handleResetGame = async () => {
     try {
-      await AsyncStorage.multiRemove([
-        STORAGE_KEY,
-        STORAGE_KEY_STATS,
-        STORAGE_KEY_SETTINGS
-      ]);
-      
+      await AsyncStorage.multiRemove([STORAGE_KEY, STORAGE_KEY_STATS, STORAGE_KEY_SETTINGS]);
+
       // Reset all state
       setCards(createCardPairs('Animals'));
       setFlippedIndexes([]);
@@ -579,11 +552,11 @@ export const GameBoard: React.FC = () => {
         playerCount: 1,
         cardTheme: 'Animals',
       });
-      
-      Alert.alert("Success", "All game data has been reset!");
+
+      Alert.alert('Success', 'All game data has been reset!');
     } catch (error) {
       console.error('Error resetting game data:', error);
-      Alert.alert("Error", "Failed to reset game data. Please try again.");
+      Alert.alert('Error', 'Failed to reset game data. Please try again.');
     }
   };
 
@@ -598,15 +571,10 @@ export const GameBoard: React.FC = () => {
               onNameClick={handlePlayerNameClick}
               style={dynamicStyles.playerInfo}
             />
-            {showScoreAnimation && currentPlayerIndex === index && (
-              <ScoreChange value={1} />
-            )}
+            {showScoreAnimation && currentPlayerIndex === index && <ScoreChange value={1} />}
           </View>
         ))}
-        <Pressable 
-          style={styles.settingsButton}
-          onPress={() => setIsSettingsVisible(true)}
-        >
+        <Pressable style={styles.settingsButton} onPress={() => setIsSettingsVisible(true)}>
           <Ionicons name="settings-outline" size={28} color="#666" />
         </Pressable>
       </View>
@@ -635,10 +603,8 @@ export const GameBoard: React.FC = () => {
             <Text style={styles.modalTitle}>Game Over!</Text>
             <Text style={styles.modalText}>{getWinner()}</Text>
             {getWinnerDisplay()}
-            <Text style={styles.modalTime}>
-              Time: {formatDuration(gameDuration)}
-            </Text>
-            
+            <Text style={styles.modalTime}>Time: {formatDuration(gameDuration)}</Text>
+
             {/* Only show best time section for single player */}
             {players.length === 1 && (
               <View style={styles.bestTimeContainer}>
@@ -660,11 +626,8 @@ export const GameBoard: React.FC = () => {
                 )}
               </View>
             )}
-            
-            <Pressable
-              style={styles.playAgainButton}
-              onPress={resetGame}
-            >
+
+            <Pressable style={styles.playAgainButton} onPress={resetGame}>
               <Text style={styles.playAgainText}>Play Again</Text>
             </Pressable>
           </View>
@@ -721,34 +684,55 @@ export const GameBoard: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  currentPlayer: {
-    backgroundColor: '#2196F3',
-    shadowOpacity: 0.25,
-    elevation: 5,
+  bestTimeContainer: {
+    borderRadius: 10,
+    marginBottom: 20,
+    padding: 10,
+    position: 'relative',
   },
   board: {
+    alignItems: 'center',
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    alignItems: 'center',
     padding: 10,
   },
-  modalOverlay: {
+  cancelButton: {
+    backgroundColor: '#f44336',
+  },
+  container: {
+    backgroundColor: '#F5F5F5',
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
+  },
+  currentPlayer: {
+    backgroundColor: '#2196F3',
+    elevation: 5,
+    shadowOpacity: 0.25,
+  },
+  modalButton: {
     alignItems: 'center',
+    borderRadius: 8,
+    flex: 1,
+    margin: 8,
+    padding: 12,
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   modalContent: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
     alignItems: 'center',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    elevation: 5,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -756,36 +740,55 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  modalText: {
-    fontSize: 18,
-    marginBottom: 15,
-    color: '#666',
+  modalOverlay: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flex: 1,
+    justifyContent: 'center',
   },
   modalScores: {
+    color: '#666',
     fontSize: 16,
     marginBottom: 20,
     textAlign: 'center',
+  },
+  modalText: {
     color: '#666',
+    fontSize: 18,
+    marginBottom: 15,
   },
   modalTime: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    color: '#333',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  nameInput: {
+    borderColor: '#ccc',
+    borderRadius: 8,
+    borderWidth: 1,
     fontSize: 16,
     marginBottom: 20,
-    color: '#666',
-    fontWeight: '500',
+    padding: 12,
+    width: '100%',
+  },
+  newBestTime: {
+    color: '#4CAF50',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   playAgainButton: {
     backgroundColor: '#2196F3',
+    borderRadius: 25,
     paddingHorizontal: 30,
     paddingVertical: 15,
-    borderRadius: 25,
   },
   playAgainText: {
     color: 'white',
@@ -793,63 +796,23 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   playerWrapper: {
+    alignItems: 'center',
     position: 'relative',
-    alignItems: 'center',
   },
-  nameInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  modalButton: {
-    flex: 1,
-    margin: 8,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f44336',
+  previousBestTime: {
+    color: '#888',
+    fontSize: 14,
+    marginTop: 5,
   },
   saveButton: {
     backgroundColor: '#4CAF50',
   },
-  modalButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  newBestTime: {
-    color: '#4CAF50',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  bestTimeContainer: {
-    position: 'relative',
-    padding: 10,
-    marginBottom: 20,
-    borderRadius: 10,
-  },
   settingsButton: {
-    position: 'absolute',
-    right: 20,
+    alignItems: 'center',
     height: '100%',
     justifyContent: 'center',
-    alignItems: 'center',
     paddingHorizontal: 10,
+    position: 'absolute',
+    right: 20,
   },
-  previousBestTime: {
-    fontSize: 14,
-    color: '#888',
-    marginTop: 5,
-  },
-}); 
+});

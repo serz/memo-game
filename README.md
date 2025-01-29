@@ -16,6 +16,7 @@ A modern memory card game built with React Native and Expo. Challenge yourself i
 - 🎯 Smooth animations
 
 ## 🎯 Game Rules
+
 - Players take turns flipping two cards at a time
 - If the cards match, the current player keeps them and gets another turn
 - If the cards don't match, they are flipped face down and the next player takes their turn
@@ -26,22 +27,70 @@ A modern memory card game built with React Native and Expo. Challenge yourself i
 ## 🚀 Getting Started
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/YOUR_USERNAME/memo-card-game.git
 cd memo-card-game
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npx expo start
 ```
 
+## 🛠️ Development
+
+### Code Quality Tools
+
+The project uses several tools to ensure code quality:
+
+- **ESLint**: JavaScript/TypeScript linting
+- **Prettier**: Code formatting
+- **TypeScript**: Static type checking
+
+### Available Commands
+
+```bash
+# Start development server
+npm start
+
+# Run ESLint
+npm run lint
+
+# Fix ESLint issues automatically
+npm run lint:fix
+
+# Format code with Prettier
+npm run format
+
+# Type check TypeScript
+npm run check-types
+
+# Run all checks (lint, type-check, format)
+npm run check-all
+```
+
+### VS Code Integration
+
+The project includes VS Code settings for:
+- Format on save
+- ESLint auto-fix on save
+- Proper TypeScript/React Native formatting
+
+Install the following VS Code extensions for the best experience:
+- ESLint
+- Prettier
+- TypeScript and JavaScript Language Features
+
 ## 🛠️ Tech Stack
+
 - React Native
 - Expo
 - React Native Reanimated (for animations)
@@ -51,14 +100,17 @@ npx expo start
 - Expo AV (for sound effects)
 
 ## 📱 Screenshots
+
 [Add screenshots here]
 
 ## 📄 License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## TODO List
 
 ### Phase 1: Basic Game Setup
+
 - [x] Create game board layout
 - [x] Design card component
   - [x] Front face (image)
@@ -68,6 +120,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [x] Add basic card flipping mechanism
 
 ### Phase 2: Game Logic
+
 - [x] Create card matching logic
   - [x] Track flipped cards
   - [x] Compare cards when two are flipped
@@ -82,6 +135,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - [x] Add winner trophy display
 
 ### Phase 3: UI/UX
+
 - [x] Design game menu
   - [x] Add settings button (top right)
   - [x] Create settings modal
@@ -99,6 +153,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - [x] Load saved names
 
 ### Phase 4: Animations & Effects
+
 - [x] Add card animations
   - [x] Flip animation
   - [x] Match celebration
@@ -119,6 +174,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     - [x] Victory sound (for winners and best times)
 
 ### Phase 5: Polish & Error Handling
+
 - [x] Add proper error handling
   - [x] Centralized error management
   - [x] Graceful error recovery
@@ -132,4 +188,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   - [x] Data reset option
 - [ ] Optimize performance
 - [ ] Add app icon and splash screen
-
