@@ -347,43 +347,43 @@ export const GameBoard: React.FC = () => {
             await AsyncStorage.setItem(STORAGE_KEY_STATS, JSON.stringify(newStats));
 
             if (isBestTime) {
-              await soundManager.playSound('bestTime');
-            } else {
               await soundManager.playSound('victory');
             }
           } catch (error) {
-            console.error('Error updating game stats:', error);
+            errorHandler.handleGameStateError(error);
           }
         };
 
         updateStats();
       } else {
-        // For multiplayer, don't track best time
-        setGameStats({ bestTime: null, lastGameTime: null });
-        setIsNewBestTime(false);
-        soundManager.playSound('victory');
+        // For multiplayer, check for tie
+        const maxScore = Math.max(...players.map(p => p.score));
+        const winners = players.filter(p => p.score === maxScore);
+        
+        // Only play victory sound if there's a single winner
+        if (winners.length === 1) {
+          soundManager.playSound('victory');
+        }
       }
 
       // Celebration haptic feedback
       const triggerCelebrationHaptic = async () => {
         try {
-          // Initial success notification
           await Haptics.notificationAsync(
             Haptics.NotificationFeedbackType.Success
           );
           
           // Follow with repeated heavy impacts
           for (let i = 0; i < 5; i++) {
-            await new Promise(resolve => setTimeout(resolve, 200)); // Wait 200ms between impacts
+            await new Promise(resolve => setTimeout(resolve, 200));
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
           }
         } catch (error) {
-          console.log('Haptics error:', error);
+          errorHandler.handleGameStateError(error);
         }
       };
       triggerCelebrationHaptic();
 
-      // Keep celebration visible for 5 seconds
       setTimeout(() => {
         setShowCelebration(false);
       }, 5000);

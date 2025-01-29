@@ -41,6 +41,7 @@ class SoundManager {
       const soundFiles = {
         flip: require('../../assets/sounds/card-flip.mp3'),
         match: require('../../assets/sounds/match.mp3'),
+        victory: require('../../assets/sounds/victory.mp3'),
       };
 
       for (const [key, file] of Object.entries(soundFiles)) {
@@ -67,7 +68,7 @@ class SoundManager {
     }
   }
 
-  async playSound(soundName: 'flip' | 'match') {
+  async playSound(soundName: 'flip' | 'match' | 'victory') {
     const sound = this.sounds[soundName];
     if (!sound) {
       errorHandler.handleSoundError(new Error(`Sound ${soundName} not available`));
