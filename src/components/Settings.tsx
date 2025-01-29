@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, Modal, Pressable, Alert, ScrollView, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -49,33 +49,46 @@ export const Settings: React.FC<SettingsProps> = ({
   const resetScale = useSharedValue(1);
   const dropdownHeight = useSharedValue(0);
 
+  // Move animations to useEffect
+  useEffect(() => {
+    if (showThemes) {
+      chevronRotate.value = withTiming(180);
+      dropdownHeight.value = withTiming(150);
+    } else {
+      chevronRotate.value = withTiming(0);
+      dropdownHeight.value = withTiming(0);
+    }
+  }, [showThemes]);
+
+  const toggleThemes = () => {
+    setShowThemes(prev => !prev);
+    // Remove the animation from here since it's now in useEffect
+  };
+
   const handlePlayerCount = (increment: boolean) => {
-    // Button press animation
+    // Move animations to their own effect
+    setPlayerCount(current => {
+      const newCount = increment ? current + 1 : current - 1;
+      return Math.min(Math.max(newCount, MIN_PLAYERS), MAX_PLAYERS);
+    });
+  };
+
+  // Add effect for button animation
+  useEffect(() => {
     buttonScale.value = withSequence(
       withSpring(0.9),
       withSpring(1)
     );
+  }, [playerCount]);
 
-    // Number slide animation
+  // Add effect for number slide animation
+  useEffect(() => {
     numberSlide.value = withSequence(
-      withTiming(increment ? -20 : 20),
+      withTiming(0),
+      withTiming(playerCount > MIN_PLAYERS ? -20 : 20),
       withTiming(0)
     );
-
-    setPlayerCount(current => {
-      const newCount = increment ? current + 1 : current - 1;
-      const validCount = Math.min(Math.max(newCount, MIN_PLAYERS), MAX_PLAYERS);
-      return validCount;
-    });
-  };
-
-  const toggleThemes = () => {
-    setShowThemes(prev => {
-      chevronRotate.value = withTiming(prev ? 0 : 180);
-      dropdownHeight.value = withTiming(prev ? 0 : 150);
-      return !prev;
-    });
-  };
+  }, [playerCount]);
 
   // Animated styles
   const buttonAnimatedStyle = useAnimatedStyle(() => ({

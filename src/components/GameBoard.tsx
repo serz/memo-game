@@ -16,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Settings, GameSettings } from './Settings';
 import { soundManager } from '../utils/sounds';
+import { errorHandler } from '../utils/errorHandling';
 
 const EMOJI_SETS = {
   Animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'],
@@ -500,13 +501,17 @@ export const GameBoard: React.FC = () => {
         : p
     );
 
-    setPlayers(updatedPlayers);
-    setEditingPlayer(null);
-
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlayers));
+      setPlayers(updatedPlayers);
+      setEditingPlayer(null);
     } catch (error) {
-      console.error('Error saving player names:', error);
+      errorHandler.handleStorageError(error, async () => {
+        // Retry action
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPlayers));
+        setPlayers(updatedPlayers);
+        setEditingPlayer(null);
+      });
     }
   };
 

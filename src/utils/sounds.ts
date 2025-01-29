@@ -1,5 +1,6 @@
 import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
+import { errorHandler, ErrorType } from './errorHandling';
 
 class SoundManager {
   private static instance: SoundManager;
@@ -55,10 +56,12 @@ class SoundManager {
           });
           this.sounds[key] = sound;
         } catch (error) {
-          console.log(`Sound ${key} not loaded yet:`, error);
+          errorHandler.handleSoundError(error);
           this.sounds[key] = null;
         }
       }
+    } catch (error) {
+      errorHandler.handleSoundError(error, false);
     } finally {
       this.isLoading = false;
     }
@@ -67,7 +70,7 @@ class SoundManager {
   async playSound(soundName: 'flip' | 'match') {
     const sound = this.sounds[soundName];
     if (!sound) {
-      console.log(`Sound ${soundName} not available`);
+      errorHandler.handleSoundError(new Error(`Sound ${soundName} not available`));
       return;
     }
 
@@ -78,11 +81,12 @@ class SoundManager {
         await sound.setVolumeAsync(1.0);
         await sound.playAsync();
       } else {
-        console.log(`Sound ${soundName} not properly loaded, trying to reload`);
+        // Try to recover by reloading sounds
         await this.loadSounds();
+        await this.playSound(soundName);
       }
     } catch (error) {
-      console.error(`Error playing ${soundName} sound:`, error);
+      errorHandler.handleSoundError(error);
       // Try to recover by reloading sounds
       this.loadSounds();
     }
